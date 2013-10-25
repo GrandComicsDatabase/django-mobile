@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+__author__ = u'Gregor Müllegger'
+__version__ = '0.3.0'
+
+
 import threading
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
@@ -109,8 +115,6 @@ def _set_request_header(request, flavour):
 
 
 def _init_flavour(request):
-    global _local
-    _local = threading.local()
     _local.request = request
     if hasattr(request, 'flavour'):
         _local.flavour = request.flavour

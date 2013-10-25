@@ -1,5 +1,14 @@
-Changlog
-========
+Changelog
+=========
+
+0.3.0
+-----
+
+* Dropping support for python 2.5 (it might still work but we won't test
+  against it anymore).
+* Fixing threading problems because of wrong usage of ``threading.local``.
+  Thanks to Mike Shultz for the patch.
+* Adding a cached template loader. Thanks to Saverio for the patch.
 
 0.2.4
 -----

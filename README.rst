@@ -2,6 +2,10 @@
 django-mobile
 =============
 
+.. image:: https://travis-ci.org/gregmuellegger/django-mobile.png
+   :alt: Build Status
+   :target: https://travis-ci.org/gregmuellegger/django-mobile
+
 .. _introduction:
 
 **django-mobile** provides a simple way to detect mobile browsers and gives
@@ -78,7 +82,9 @@ available it will gracefully fallback to the default ``index.html`` template.
 
 In some cases its not the desired way to have a completely separate templates
 for each flavour. You can also use the ``{{ flavour }}`` template variable to
-only change small aspects of a single template. A short example::
+only change small aspects of a single template. A short example:
+
+.. code-block:: html+django
 
     <html>
     <head>
@@ -115,7 +121,9 @@ the ``flavour`` GET parameter on a request to your site. This will permanently
 choose this flavour as their preference to view the site.
 
 You can use this GET parameter to let the user select from your available
-flavours::
+flavours:
+
+.. code-block:: html+django
 
     <ul>
         <li><a href="?flavour=full">Get the full experience</a>
@@ -153,14 +161,12 @@ Reference
 =========
 
 ``django_mobile.get_flavour([request,] [default])``
-
     Get the currently active flavour. If no flavour can be determined it will
     return *default*. This can happen if ``set_flavour`` was not called before
     in the current request-response cycle. *default* defaults to the first
     item in the ``FLAVOURS`` setting.
 
 ``django_mobile.set_flavour(flavour, [request,] [permanent])``
-
     Set the *flavour* to be used for *request*. This will raise ``ValueError``
     if *flavour* is not in the ``FLAVOURS`` setting. You can try to set the
     flavour permanently for *request* by passing ``permanent=True``. This may
@@ -168,18 +174,15 @@ Reference
     currently active request.
 
 ``django_mobile.context_processors.flavour``
-
     Context processor that adds the current flavour as *flavour* to the
     context.
 
 ``django_mobile.context_processors.is_mobile``
-
     This context processor will add a *is_mobile* variable to the context
     which is ``True`` if the current flavour equals the
     ``DEFAULT_MOBILE_FLAVOUR`` setting.
 
 ``django_mobile.middleware.SetFlavourMiddleware``
-
     Takes care of loading the stored flavour from the user's session or
     cookies (depending on ``FLAVOURS_STORAGE_BACKEND``) if set. Also sets the
     current request to a thread-local variable. This is needed to provide
@@ -187,22 +190,18 @@ Reference
     object.
 
 ``django_mobile.middleware.MobileDetectionMiddleware``
-
     Detects if a mobile browser tries to access the site and sets the flavour
     to ``DEFAULT_MOBILE_FLAVOUR`` settings value in case.
 
 ``django_mobile.cache.cache_page``
-
     Same as django's ``cache_page`` decorator but applies ``vary_on_flavour``
     before the view is decorated with
     ``django.views.decorators.cache.cache_page``.
 
 ``django_mobile.cache.vary_on_flavour``
-
     A decorator created from the ``CacheFlavourMiddleware`` middleware.
 
 ``django_mobile.cache.middleware.CacheFlavourMiddleware``
-
     Adds ``X-Flavour`` header to ``request.META`` in ``process_request`` and
     adds this header to ``response['Vary']`` in ``process_response``.
 
@@ -233,92 +232,102 @@ Settings
 Here is a list of settings that are used by **django-mobile** and can be
 changed in your own ``settings.py``:
 
-FLAVOURS
-^^^^^^^^
+``FLAVOURS``
+    A list of available flavours for your site.
+    
+    **Default:** ``('full', 'mobile')``
 
-A list of available flavours for your site.
+``DEFAULT_MOBILE_FLAVOUR``
+    The flavour which is chosen if the built-in ``MobileDetectionMiddleware``
+    detects a mobile browser.
+    
+    **Default:** ``'mobile'``
 
-**Default:** ``('full', 'mobile')``
+``FLAVOURS_COOKIE_HTTPONLY``
+    The value that get passed into ``HttpResponse.set_cookie``'s ``httponly``
+    argument. Set this to ``True`` if you don't want the Javascript code to be
+    able to read the flavour cookie.
+    
+    **Default:** ``False``
 
-DEFAULT_MOBILE_FLAVOUR
-^^^^^^^^^^^^^^^^^^^^^^
+``FLAVOURS_COOKIE_KEY``
+    The cookie name that is used for storing the selected flavour in the
+    browser.  This is only used if ``FLAVOURS_STORAGE_BACKEND`` is set to
+    ``'cookie'``.
+    
+    **Default:** ``'flavour'``
 
-The flavour which is chosen if the built-in ``MobileDetectionMiddleware``
-detects a mobile browser.
+``FLAVOURS_TEMPLATE_PREFIX``
+    This string will be prefixed to the template names when searching for
+    flavoured templates. This is useful if you have many flavours and want to
+    store them in a common subdirectory. Example:
+    
+    .. code-block:: python
+    
+        from django.template.loader import render_to_string
+        from django_mobile import set_flavour
 
-**Default:** ``'mobile'``
+        set_flavour('mobile')
+        render_to_string('index.html') # will render 'mobile/index.html'
 
-FLAVOURS_COOKIE_HTTPONLY
-^^^^^^^^^^^^^^^^^^^^^^^^
+        # now add this to settings.py
+        FLAVOURS_TEMPLATE_PREFIX = 'flavours/'
 
-The value that get passed into ``HttpResponse.set_cookie``'s ``httponly``
-argument. Set this to ``True`` if you don't want the Javascript code to be
-able to read the flavour cookie.
+        # and try again
 
-**Default:** ``False``
+        set_flavour('mobile')
+        render_to_string('index.html') # will render 'flavours/mobile/index.html'
+    
+    **Default:** ``''`` (empty string)
 
-FLAVOURS_COOKIE_KEY
-^^^^^^^^^^^^^^^^^^^
+``FLAVOURS_TEMPLATE_LOADERS``
+    **django-mobile**'s template loader can load templates prefixed with the
+    current flavour. Specify with this setting which loaders are used to load
+    flavoured templates.
+    
+    **Default:** same as ``TEMPLATE_LOADERS`` setting but without
+    ``'django_mobile.loader.Loader'``.
 
-The cookie name that is used for storing the selected flavour in the browser.
-This is only used if ``FLAVOURS_STORAGE_BACKEND`` is set to ``'cookie'``.
+``FLAVOURS_GET_PARAMETER``
+    Users can change the flavour they want to look at with a HTTP GET
+    parameter.  This determines the name of this parameter.  Set it to
+    ``None`` to disable.
+    
+    **Default:** ``'flavour'``
 
-**Default:** ``'flavour'``
+``FLAVOURS_SESSION_KEY``
+    The user's preference set with the GET parameter is stored in the user's
+    session. This setting determines which session key is used to hold this
+    information.
+    
+    **Default:** ``'flavour'``
 
-FLAVOURS_TEMPLATE_PREFIX
-^^^^^^^^^^^^^^^^^^^^^^^^
+``FLAVOURS_STORAGE_BACKEND``
+    Determines how the selected flavour is stored persistently. Available
+    values: ``'session'`` and ``'cookie'``.
+    
+    **Default:** ``'session'``
 
-This string will be prefixed to the template names when searching for
-flavoured templates. This is useful if you have many flavours and want to
-store them in a common subdirectory. Example::
+Cache Settings
+--------------
 
-    from django.template.loader import render_to_string
-    from django_mobile import set_flavour
+Django ships with the `cached template loader`_
+``django.template.loaders.cached.Loader`` that doesn't require to fetch the
+template from disk every time you want to render it. However it isn't aware of
+django-mobile's flavours. For this purpose you can use
+``'django_mobile.loader.CachedLoader'`` as a drop-in replacement that does
+exactly the same django's version but takes the different flavours into
+account. To use it, put the following bit into your ``settings.py`` file:
 
-    set_flavour('mobile')
-    render_to_string('index.html') # will render 'mobile/index.html'
+.. code-block:: python
 
-    # now add this to settings.py
-    FLAVOURS_TEMPLATE_PREFIX = 'flavours/'
+    TEMPLATE_LOADERS = (
+        ('django_mobile.loader.CachedLoader', (
+              'django_mobile.loader.Loader',
+              'django.template.loaders.filesystem.Loader',
+              'django.template.loaders.app_directories.Loader',
+        )),
+    )
 
-    # and try again
-
-    set_flavour('mobile')
-    render_to_string('index.html') # will render 'flavours/mobile/index.html'
-
-**Default:** ``''`` (empty string)
-
-FLAVOURS_TEMPLATE_LOADERS
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**django-mobile**'s template loader can load templates prefixed with the
-current flavour. Specify with this setting which loaders are used to load
-flavoured templates.
-
-**Default:** same as ``TEMPLATE_LOADERS`` setting but without
-``'django_mobile.loader.Loader'``.
-
-FLAVOURS_GET_PARAMETER
-^^^^^^^^^^^^^^^^^^^^^^
-
-Users can change the flavour they want to look at with a HTTP GET parameter.
-This determines the name of this parameter.  Set it to ``None`` to disable.
-
-**Default:** ``'flavour'``
-
-FLAVOURS_SESSION_KEY
-^^^^^^^^^^^^^^^^^^^^
-
-The user's preference set with the GET parameter is stored in the user's
-session. This setting determines which session key is used to hold this
-information.
-
-**Default:** ``'flavour'``
-
-FLAVOURS_STORAGE_BACKEND
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Determines how the selected flavour is stored persistently. Available values:
-``'session'`` and ``'cookie'``.
-
-**Default:** ``'session'``
+.. _cached template loader:
+   https://docs.djangoproject.com/en/dev/ref/templates/api/#django.template.loaders.cached.Loader
