@@ -1,6 +1,49 @@
 Changelog
 =========
 
+0.7.0
+-----
+
+* `#64`_: Fixing ``cache_page`` decorator and splitting the
+  ``CacheFlavourMiddleware`` into two middlewares. This follows the same
+  strategy as Django did since quite a while. Please see `#64`_ for more
+  details about why this is necessary.
+
+  If you are using ``CacheFlavourMiddleware``, you need to replace it now with
+  ``FetchFromCacheFlavourMiddleware`` and ``UpdateCacheMiddleware``.  Please
+  consolidate the README for more information.
+
+  Thanks to Yury Paykov for the patch.
+
+.. _#64: https://github.com/gregmuellegger/django-mobile/pull/64
+
+0.6.0
+-----
+
+* `#63`_: Django 1.9 support. Thanks to Alexandre Vicenzi for the patch.
+
+.. _#63: https://github.com/gregmuellegger/django-mobile/pull/63
+
+0.5.1
+-----
+
+* `#58`_: Fix Python 3 install issues related to unicode strings. Thanks to
+  Zowie for inspiring the patch.
+
+.. _#58: https://github.com/gregmuellegger/django-mobile/pull/58
+
+0.5.0
+-----
+
+* Support for Django 1.7 and Django 1.8. Thanks to Jose Ignacio Galarza and to
+  Anton Shurashov for the patches.
+
+0.4.0
+-----
+
+* Python 3.3 compatibility, thanks Mirko Rossini for the patch.
+* Dropping Django 1.3 and 1.4 support.
+
 0.3.0
 -----
 
